@@ -1,3 +1,4 @@
+import itertools
 import random
 
 def returnItems():
@@ -21,34 +22,47 @@ def returnItems():
 
 
 def fillBackpack(items, backpack_capacity):
-    backpack = []
-    weight = 0
-    itemCount = 0
+    max_price = 0
+    best_combination = []
 
-    for item in sorted(items, key=lambda i: i[3], reverse=True):
-        if weight + item[2] <= backpack_capacity:
-            backpack.append(item)
-            weight += item[2]
-            itemCount += 1
-    
-    return backpack, weight, itemCount
+    items.sort(key=lambda x: x[3]/x[2], reverse=True)
+
+    for r in range(1, len(items)+1):
+        for combination in itertools.combinations(items, r):
+            weight = sum([item[2] for item in combination])
+            price = sum([item[3] for item in combination])
+
+            classes_in_backpack = set()
+            include_combination = True
+            for item in combination:
+                if item[1] in classes_in_backpack:
+                    include_combination = False
+                    break
+                else:
+                    classes_in_backpack.add(item[1])
+
+            if weight <= backpack_capacity and price > max_price and include_combination:
+                max_price = price
+                best_combination = combination
+
+    return best_combination, max_price
 
 
 def printBackpackContents(backpack):
     price = 0
     for item in backpack:
-        print("Name: {0:<15} Weight: {1:<10} Price: {2}".format(item[0], item[2], item[3]))
+        print("Name: {0:<10} Class: {1:<10} Weight: {2:<5} Price: {3}".format(item[0], item[1], item[2], item[3]))
         price += item[3]
     return price
 
 
 def main():
-    backpack_capacity = 3.3
+    backpack_capacity = 0.9
     items = returnItems()
-    backpack, weight, item_count = fillBackpack(items, backpack_capacity)
+    backpack, price = fillBackpack(items, backpack_capacity)
     price = printBackpackContents(backpack)
     print()
-    print("Item count:", item_count, "\tWeight:", round(weight, 2), "\tPrice:", round(price, 2))
+    print("Total price:", round(price, 2))
 
 
 if __name__ == "__main__":
